@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Equações 1º Grau</title>
+<style>
+body { font-family: Arial, sans-serif; text-align:center; background:#f0f8ff; margin:0; padding:0;}
+.screen { display:none; padding:20px; }
+.active { display:block; transition:0.3s; }
+.option { 
+    margin:5px auto; 
+    padding:10px; 
+    width:200px; 
+    background:#87CEFA; 
+    border-radius:8px; 
+    cursor:pointer; 
+    transition:0.3s; 
+    transform: scale(1);
+}
+.option:hover { 
+    background:#00BFFF; 
+    transform: scale(1.05);
+}
+#loading, #finalLoading {
+    display:none;
+    margin:20px auto;
+    width:50px;
+    height:50px;
+    border:5px solid #ccc;
+    border-top:5px solid #00BFFF;
+    border-radius:50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+}
+iframe { width: 100%; height: 500px; border:none; margin-top:20px; }
+button { padding:10px 20px; font-size:16px; cursor:pointer; }
+input { padding:5px; font-size:16px; }
+</style>
+</head>
+<body>
+
+<!-- Tela inicial -->
+<div id="startScreen" class="screen active">
+    <h1>Bem-vindo ao Quiz de Equações!</h1>
+    <p>Digite o nome do seu grupo:</p>
+    <input type="text" id="groupName" placeholder="Nome do grupo">
+    <br><br>
+    <button onclick="startQuiz()">Começar</button>
+</div>
+
+<!-- Quiz -->
+<div id="quizScreen" class="screen">
+    <h2 id="questionText"></h2>
+    <div id="options"></div>
+    <div id="loading"></div>
+    <p>Questão <span id="currentQ">1</span> de 25</p>
+</div>
+
+<!-- Tela do minijogo -->
+<div id="gameScreen" class="screen">
+    <h2>Enquanto calculamos sua pontuação...</h2>
+    <button onclick="passTime()">Passar tempo</button>
+    <div id="finalLoading"></div>
+    <iframe src="https://littlekah.github.io/2-Players-Chess/"></iframe>
+</div>
+
+<!-- Tela de resultado -->
+<div id="resultScreen" class="screen">
+    <h1>Resultado do Quiz</h1>
+    <p id="resultText"></p>
+</div>
+
+<script>
+const questions = [
+    {q:"x + 3 = 7", answer:4},
+    {q:"2x = 10", answer:5},
+    {q:"3x - 2 = 10", answer:4},
+    {q:"Maria tinha x balas e ganhou 5, agora tem 12. Qual é x?", answer:7},
+    {q:"x/2 + 3 = 7", answer:8},
+    {q:"5x + 1 = 16", answer:3},
+    {q:"João comprou x livros e depois ganhou 2, agora tem 7. Qual é x?", answer:5},
+    {q:"x - 4 = 10", answer:14},
+    {q:"3x = 9", answer:3},
+    {q:"2x + 5 = 13", answer:4},
+    {q:"Se x + 7 = 12, quanto vale x?", answer:5},
+    {q:"x/3 = 4", answer:12},
+    {q:"Ana tinha x reais, gastou 8 e ficou com 12. Quanto tinha antes?", answer:20},
+    {q:"4x - 3 = 13", answer:4},
+    {q:"Se 5x = 25, x é?", answer:5},
+    {q:"x + 2 = 9", answer:7},
+    {q:"Pedro tem x chocolates, comeu 3 e ficou com 7. Qual é x?", answer:10},
+    {q:"7x = 21", answer:3},
+    {q:"x - 5 = 0", answer:5},
+    {q:"2x + 7 = 15", answer:4},
+    {q:"x/4 = 3", answer:12},
+    {q:"Se x + 6 = 14, x vale?", answer:8},
+    {q:"8x - 4 = 12", answer:2},
+    {q:"3x + 9 = 18", answer:3},
+    {q:"Lucas tem x figurinhas, ganhou 10 e ficou com 20. Qual é x?", answer:10},
+];
+
+let currentQuestion = 0;
+let score = 0;
+let groupName = "";
+
+function startQuiz(){
+    groupName = document.getElementById('groupName').value || "Grupo sem nome";
+    document.getElementById('startScreen').classList.remove('active');
+    document.getElementById('quizScreen').classList.add('active');
+    showQuestion();
+}
+
+function showQuestion(){
+    if(currentQuestion >= questions.length){
+        document.getElementById('quizScreen').classList.remove('active');
+        document.getElementById('gameScreen').classList.add('active');
+        return;
+    }
+    const q = questions[currentQuestion];
+    document.getElementById('questionText').innerText = q.q;
+
+    let options = [q.answer];
+    while(options.length < 5){
+        let fake = q.answer + Math.floor(Math.random()*5)-2;
+        if(fake !== q.answer && !options.includes(fake) && fake>=0) options.push(fake);
+    }
+
+    options = options.sort(() => Math.random() - 0.5);
+
+    let html = "";
+    options.forEach(opt=>{
+        html += `<div class="option" onclick="selectAnswer(${opt})">${opt}</div>`;
+    });
+    document.getElementById('options').innerHTML = html;
+    document.getElementById('currentQ').innerText = currentQuestion+1;
+}
+
+function selectAnswer(selected){
+    document.getElementById('options').style.display='none';
+    document.getElementById('loading').style.display='block';
+
+    setTimeout(()=>{
+        document.getElementById('loading').style.display='none';
+        document.getElementById('options').style.display='block';
+        if(selected === questions[currentQuestion].answer) score++;
+        currentQuestion++;
+        showQuestion();
+    }, 800);
+}
+
+// Função de carregamento final de 10 segundos
+function passTime(){
+    const btn = document.querySelector('#gameScreen button');
+    btn.style.display = 'none';
+    document.getElementById('finalLoading').style.display = 'block';
+
+    setTimeout(()=>{
+        document.getElementById('finalLoading').style.display = 'none';
+        document.getElementById('gameScreen').classList.remove('active');
+        document.getElementById('resultScreen').classList.add('active');
+        document.getElementById('resultText').innerText = `${groupName} acertou ${score} de ${questions.length} questões!`;
+    }, 10000); // 10 segundos
+}
+</script>
+
+</body>
+</html>
